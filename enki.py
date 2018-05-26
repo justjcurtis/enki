@@ -2,7 +2,6 @@ import base64
 import hashlib
 from Crypto import Random
 from Crypto.Cipher import AES
-
 import os
 from pathlib import Path
 import zipfile
@@ -132,13 +131,21 @@ def getFile():
     print("========================================================")
     res = ""
 
+    phil = phil.strip()
     if "\'" in phil:
         for char in phil:
             if (char == "\'"):
                 char = ""
             res = res + char
         phil = res
+    if "\"" in phil:
+        for char in phil:
+            if (char == "\""):
+                char = ""
+            res = res + char
+        phil = res
 
+    phil = phil.strip()
     if phil[-7:] == ".z.enki":
         print("============================================================")
         print("A \".z\" file will be created to encrypt and decrypt folders")
