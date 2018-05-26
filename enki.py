@@ -8,6 +8,7 @@ from pathlib import Path
 import zipfile
 
 zipW = zipfile.ZipFile('Python.zip', 'w', zipfile.ZIP_DEFLATED)
+lister = False
 
 class AESCipher(object):
 
@@ -39,28 +40,59 @@ def clr():
 def main():
     clr()
     phil = getFile()
+    phil = phil.strip()
+    print("Enter password for enki " + phil)
+    key = input("--> ")
     if phil[-5:] != ".enki":
-        print("Enter password to lock " + phil)
-        key = input("--> ")
-        print("Encrypting...")
-        encd = enc(phil, key)
-        out = phil + ".enki"
-        writeByt(encd, out)
-        print("Successfuly encryted")
+        if lister:
+            #iterate over phil list and enc each result
+            #should check here weather to enc or denc
+            print("Do you want to encrypt, decrypt or switch (1, 2, 3)?")
+            mode = input("--> ")
+            if mode == "2":
+                for item in os.listdir(phil):
+                    fil = os.path.join(phil, item)
+                    if os.path.isfile(fil):
+                        dencOut(fil, key)
+            elif mode == "3":
+                for item in os.listdir(phil):
+                    fil = os.path.join(phil, item)
+                    if os.path.isfile(fil):
+                        dencOut(fil, key)
+                        encOut(fil, key)
+            else:
+                for item in os.listdir(phil):
+                    fil = os.path.join(phil, item)
+                    print(fil)
+                    if os.path.isfile(fil):
+                        encOut(fil, key)
+        else:
+            encOut(phil, key)
     else:
-        print("Enter password to unlock " + phil)
-        key = input("--> ")
-        print("Decrypting...")
-        dencd = denc(phil, key)
-        out = phil[:-5]
-        writeByt(dencd, out)
-        if out[-2:] == ".z":
-            unzipDir(out)
-        print("Successfuly decrypted")
+        dencOut(phil, key)
     print("")
     print("====================================")
     input("Press enter to return to file select")
     main()
+
+
+def dencOut(fil, key):
+    if fil[-5:] == ".enki":
+        print("Decrypting " + fil + " ...")
+        dencd = denc(fil, key)
+        out = fil[:-5]
+        writeByt(dencd, out)
+        if out[-2:] == ".z":
+            unzipDir(out)
+        print("Successfuly decrypted " + fil)
+
+def encOut(fil, key):
+    if fil[-5:] != ".enki":
+        print("Encrypting " + fil + "...")
+        encd = enc(fil, key)
+        out = fil + ".enki"
+        writeByt(encd, out)
+        print("Successfuly encryted " + fil)
 
 def enc(phil, key):
     data = readByt(phil)
@@ -92,6 +124,7 @@ def unzipDir(pathh):
         zf.extractall(parentDir)
 
 def getFile():
+    global lister
     print("Enter path to file or folder or drag and drop file here")
     print("Press Ctrl+c to exit at any time")
     phil = input("--> ")
@@ -115,14 +148,22 @@ def getFile():
         input("")
 
     if os.path.isdir(phil):
-        print("============================================================")
-        print("A \".z\" file will be created to encrypt and decrypt folders")
-        print("This will be unencrypted and left for you to delete safely")
-        print("Press enter to continue")
-        print("============================================================")
-        input("")
-        zipDir(phil)
-        phil = phil + ".z"
+
+        print("Do you want to encrypt this folder or all files within it individually ?(1/2)")
+        dirOrFiles = input("--> ")
+        if dirOrFiles == "1":
+            print("============================================================")
+            print("A \".z\" file will be created to encrypt and decrypt folders")
+            print("This will be unencrypted and left for you to delete safely")
+            print("Press enter to continue")
+            print("============================================================")
+            input("")
+            zipDir(phil)
+            phil = phil + ".z"
+            return phil
+        else:
+            lister = True
+            return phil
     elif not os.path.isfile(phil):
         print("Please enter a valid file path")
         input("Press enter to continue..")
